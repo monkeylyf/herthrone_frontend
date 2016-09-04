@@ -1,0 +1,1 @@
+export const MAX_DUPLICATE_CARD_COUNT = 2;
