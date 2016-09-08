@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 
 import Dashboard from '../dashboard/dashboard.jsx';
-import { SELECTED_CARDS, SELECTED_HERO } from '../literals/local_storage.jsx';
+import { EMPTY_HASH, SELECTED_CARDS, SELECTED_HERO } from '../literals/local_storage.jsx';
 
 
 class HeroList extends React.Component {
@@ -10,10 +10,11 @@ class HeroList extends React.Component {
     super(props);
     this.state = {
       heroes: [],
-      selectedHero: localStorage.getItem(SELECTED_HERO),
+      selectedHeroJson: JSON.parse(localStorage.getItem(SELECTED_HERO) || EMPTY_HASH),
     };
 
-    console.log("selected hero!!!: " + this.state.selectedHero);
+    console.log("Init selected hero: " + this.state.selectedHeroJson.name);
+    console.log(this.state.selectedHeroJson);
 
     this.listenOnSelect = this.listenOnSelect.bind(this);
   }
@@ -33,22 +34,22 @@ class HeroList extends React.Component {
   }
 
   listenOnSelect(index) {
-    const previousSelectedHero = this.state.selectedHero;
+    const previousSelectedHeroName = this.state.selectedHeroJson.name;
     const currentSelectedHero = this.state.heroes[index];
-    console.log("previous hero " + previousSelectedHero);
-    console.log("current hero " + currentSelectedHero);
-    if (previousSelectedHero != currentSelectedHero) {
-      this.setState({selectedHero: currentSelectedHero}, function() {
-        console.log(currentSelectedHero + " selected");
-        localStorage.setItem(SELECTED_HERO, currentSelectedHero);
-        if (previousSelectedHero) {
+    const currentSelectedHeroName = currentSelectedHero.name;
+    console.log("previous selected hero " + previousSelectedHeroName);
+    console.log("current selected hero " + currentSelectedHeroName);
+    if (previousSelectedHeroName != currentSelectedHeroName) {
+      this.setState({selectedHeroJson: currentSelectedHero}, function() {
+        localStorage.setItem(SELECTED_HERO, JSON.stringify(currentSelectedHero));
+        if (previousSelectedHeroName) {
           // Clear selected cards.
-          console.log("Selected cards for " + previousSelectedHero + " cleared");
+          console.log("Selected cards for " + previousSelectedHeroName + " cleared");
           localStorage.setItem(SELECTED_CARDS, '{}');
         }
       });
     } else {
-      console.log(currentSelectedHero + " selected again. No changes.");
+      console.log(currentSelectedHeroName + " selected again. No changes.");
     }
   }
 
@@ -56,10 +57,10 @@ class HeroList extends React.Component {
     var that = this;
     return (
       <ul className="heroList">
-        {this.state.heroes.map(function(item, index) {
+        {this.state.heroes.map(function(heroJson, index) {
           return (
             <li key={index} onClick={() => that.listenOnSelect(index)}>
-              {item}
+              {heroJson.display_name}
             </li>
           );
         })}
