@@ -39,21 +39,36 @@ class Deck extends React.Component {
     this.props.removeCardFromSelected(selectedCard);
   }
 
+  /**
+   * Renders deck which displays the selected cards. The caveat here is, this.props.cards
+   * and this.props.selectedCards are ouf of sync. The former one is initilized as empty
+   * hash and mounted after ajax call. The latter one is initialized from localStorage.
+   * That being said, the view will be render twice, first time as initialization and second
+   * time re-render because this.state.cards is updated.
+   * For the first time rendering, data are out of sync and deck cannot be displayed so use
+   * cards as necessary condition to display the view.
+   * @return {[type]} [description]
+   */
   render() {
     var that = this;
-    const content = Object.keys(this.props.selectedCards).map(function(cardName, index) {
+    const cardNames = Object.keys(this.props.selectedCards);
+    if (Object.keys(this.props.cards).length !== 0) {
+      const content = cardNames.map(function(cardName, index) {
+        return (
+          <li onClick={() => that.selectOnCardInDeck(cardName)} key={index}>
+            {that.props.cards[cardName].displayName + " x" + that.props.selectedCards[cardName]}
+          </li>
+        );
+      });
       return (
-        <li onClick={() => that.selectOnCardInDeck(cardName)} key={index}>
-          {cardName + " x" + that.props.selectedCards[cardName]}
-        </li>
+        <div>
+          <ul>{content}</ul>
+          <DeckStatusBar selectedCards={this.props.selectedCards} />
+        </div>
       );
-    });
-    return (
-      <div>
-        <ul>{content}</ul>
-        <DeckStatusBar selectedCards={this.props.selectedCards} />
-      </div>
-    );
+    } else {
+      return false;
+    }
   }
 };
 
@@ -61,14 +76,14 @@ class CardContainer extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedHero: localStorage.getItem(SELECTED_HERO),
+      selectedHeroJson: JSON.parse(localStorage.getItem(SELECTED_HERO) || EMPTY_HASH),
       selectedCards: JSON.parse(localStorage.getItem(SELECTED_CARDS) || EMPTY_HASH),
-      cards: []
+      cards: {}
     };
 
     this.listenOnSelectCard = this.listenOnSelectCard.bind(this);
 
-    console.log("selected hero " + this.state.selectedHero);
+    console.log("selected hero " + this.state.selectedHeroJson.name);
     console.log(this.state.selectedCards);
   }
 
@@ -77,7 +92,7 @@ class CardContainer extends React.Component {
       url: this.props.url,
       dataType: 'json',
       type: 'POST',
-      data: JSON.stringify({hero: this.state.selectedHero}),
+      data: JSON.stringify({class_type: this.state.selectedHeroJson.class_type}),
       cache: true,
       success: function(data) {
         this.setState({cards: data});
@@ -102,20 +117,19 @@ class CardContainer extends React.Component {
     });
   }
 
-  listenOnSelectCard(index) {
+  listenOnSelectCard(cardName) {
     const selectedCards = this.state.selectedCards;
     const selectedCardsCount = sumTotalSelectedCardsCount(selectedCards);
     if (selectedCardsCount < MAX_CARD_IN_A_DECK) {
-      const selectedCard = this.state.cards[index];
-      const cardCount = selectedCards[selectedCard] || 0;
+      const cardCount = selectedCards[cardName] || 0;
       if (cardCount < MAX_DUPLICATE_CARD_COUNT) {
-        selectedCards[selectedCard] = cardCount + 1;
+        selectedCards[cardName] = cardCount + 1;
         console.log(JSON.stringify(selectedCards));
         this.setState({selectedCards: selectedCards}, function() {
           localStorage.setItem(SELECTED_CARDS, JSON.stringify(selectedCards));
         });
       } else {
-        console.log(selectedCard + " already have " + MAX_DUPLICATE_CARD_COUNT + " copies in deck");
+        console.log(cardName + " already have " + MAX_DUPLICATE_CARD_COUNT + " copies in deck");
       }
     } else {
       console.log("Cannot select more than " + MAX_CARD_IN_A_DECK + " cards");
@@ -123,20 +137,20 @@ class CardContainer extends React.Component {
   }
 
   render() {
-    if (this.state.selectedHero) {
+    if (Object.keys(this.state.selectedHeroJson).length !== 0) {
       var that = this;
       var boundRemoveCardFromSelected = this.removeCardFromSelected.bind(this); 
-      const content = this.state.cards.map(function(item, index) {
+      const content = Object.keys(this.state.cards).map(function(cardName, index) {
         return (
-          <li onClick={() => that.listenOnSelectCard(index)} key={index}>
-            {item}
+          <li onClick={() => that.listenOnSelectCard(cardName)} key={index}>
+            {that.state.cards[cardName].displayName}
           </li>
         );
       });
       return (
         <div className={CARDS}>
           <ul className={CARD_ENTRY}>{content}</ul>
-          <Deck selectedCards={this.state.selectedCards} removeCardFromSelected={boundRemoveCardFromSelected}/>
+          <Deck selectedCards={this.state.selectedCards} removeCardFromSelected={boundRemoveCardFromSelected} cards={this.state.cards} />
         </div>
       );
     } else {

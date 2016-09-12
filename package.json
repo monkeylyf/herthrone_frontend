@@ -8,6 +8,17 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack -p"
   },
+  "eslintConfig": {
+    "extends": "eslint:recommended",
+    "env": {
+      "node": true
+    },
+    "rules": {
+      "no-console": "off",
+      "indent": [ "error", 2 ],
+      "quotes": [ "error", "single" ]
+    }
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
