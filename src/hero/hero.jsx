@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 
 import Dashboard from '../dashboard/dashboard.jsx';
-import { EMPTY_HASH, SELECTED_CARDS, SELECTED_HERO } from '../literals/local_storage.jsx';
+import { EMPTY_HASH, DECK, SELECTED_HERO } from '../literals/local_storage.jsx';
 
 
 class HeroList extends React.Component {
@@ -28,7 +28,7 @@ class HeroList extends React.Component {
         this.setState({heroes: data});
       }.bind(this),
       error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString()); 
+        console.error(this.props.url, status, err.toString());
       }.bind(this)
     });
   }
@@ -45,7 +45,7 @@ class HeroList extends React.Component {
         if (previousSelectedHeroName) {
           // Clear selected cards.
           console.log("Selected cards for " + previousSelectedHeroName + " cleared");
-          localStorage.setItem(SELECTED_CARDS, '{}');
+          localStorage.setItem(DECK, '{}');
         }
       });
     } else {

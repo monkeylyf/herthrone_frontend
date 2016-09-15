@@ -2,8 +2,9 @@ import React from 'react';
 import { render } from 'react-dom';
 
 import Dashboard from '../dashboard/dashboard.jsx';
+import Battlefield from './battlefield.jsx';
 import { EMPTY_HASH, DECK, SELECTED_HERO } from '../literals/local_storage.jsx';
-import { MAX_CARD_IN_A_DECK } from '../literals/constant.jsx';
+import { MAX_CARD_IN_DECK } from '../literals/constant.jsx';
 import { sumTotalSelectedCardsCount } from '../card/card.jsx';
 import { COMPLETE_DECK_MESSAGE, SELECT_HERO_MESSAGE } from '../literals/message.jsx';
 
@@ -46,7 +47,7 @@ class MatchStatusBar extends React.Component {
     var content;
     if (!this.props.selectedHero) {
       content = SELECT_HERO_MESSAGE;
-    } else if (sumTotalSelectedCardsCount(this.props.deck) < MAX_CARD_IN_A_DECK) {
+    } else if (sumTotalSelectedCardsCount(this.props.deck) < MAX_CARD_IN_DECK) {
       content = COMPLETE_DECK_MESSAGE;
     } else {
       content = <button type="button" onClick={this.startGame}>Find a worthy foe</button>;
@@ -72,6 +73,7 @@ export default class Match extends React.Component {
       <div>
         <Dashboard />
         <MatchStatusBar selectedHero={this.state.selectedHero} deck={this.state.deck} url='api/game/start'/>
+        <Battlefield />
       </div>
     );
   };

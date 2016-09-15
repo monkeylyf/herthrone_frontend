@@ -1,0 +1,26 @@
+.dashboard {
+    background-color: grey;
+}
+
+.cardList {
+    display: inline-block;
+}
+
+.minion {
+    background-color: AliceBlue;
+    white-space: nowrap;
+}
+
+.spell {
+    background-color: Cornsilk;
+    white-space: nowrap;
+}
+
+.weapon {
+    background-color: Gainsboro;
+    white-space: nowrap;
+}
+
+li.minion:hover {
+    background-color: LightGreen;
+}

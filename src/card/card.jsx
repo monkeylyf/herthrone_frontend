@@ -4,7 +4,7 @@ import { render } from 'react-dom';
 import Dashboard from '../dashboard/dashboard.jsx';
 
 import { CARDS, CARD_ENTRY, DECK_STATUS_BAR } from '../literals/class_name.jsx';
-import { MAX_DUPLICATE_CARD_COUNT, MAX_CARD_IN_A_DECK } from '../literals/constant.jsx';
+import { MAX_DUPLICATE_CARD_COUNT, MAX_CARD_IN_DECK } from '../literals/constant.jsx';
 import { EMPTY_HASH, DECK, SELECTED_HERO } from '../literals/local_storage.jsx';
 import { SELECT_HERO_MESSAGE } from '../literals/message.jsx';
 
@@ -54,15 +54,16 @@ class Deck extends React.Component {
     const cardNames = Object.keys(this.props.deck);
     if (Object.keys(this.props.cards).length !== 0) {
       const content = cardNames.map(function(cardName, index) {
+        const cardJson = that.props.cards[cardName];
         return (
-          <li onClick={() => that.selectOnCardInDeck(cardName)} key={index}>
-            {that.props.cards[cardName].displayName + " x" + that.props.deck[cardName]}
+          <li onClick={() => that.selectOnCardInDeck(cardName)} key={index} className={cardJson.type}>
+            {cardJson.displayName + " x" + that.props.deck[cardName]}
           </li>
         );
       });
       return (
         <div>
-          <ul>{content}</ul>
+          <ul className='cardList'>{content}</ul>
           <DeckStatusBar deck={this.props.deck} />
         </div>
       );
@@ -82,6 +83,7 @@ class CardContainer extends React.Component {
     };
 
     this.listenOnSelectCard = this.listenOnSelectCard.bind(this);
+    this.getCardStatus = this.getCardStatus.bind(this);
 
     console.log("selected hero " + this.state.selectedHeroJson.name);
     console.log(this.state.deck);
@@ -117,10 +119,32 @@ class CardContainer extends React.Component {
     });
   }
 
+  getCardStatus(cardJson) {
+    const type = cardJson.type;
+    const prefix = cardJson.crystal;
+    var suffix = '';
+    if (type === 'minion') {
+      suffix = cardJson.attack + '/' + cardJson.health;
+    } else if (type === 'weapon') {
+      console.log(cardJson);
+      suffix = cardJson.attack + '/' + cardJson.durability;
+    } else if (type === 'spell') {
+      suffix = '';
+    } else {
+      suffix = '';
+    }
+
+    if (suffix) {
+      return prefix + '/' + suffix;
+    } else {
+      return prefix;
+    }
+  }
+
   listenOnSelectCard(cardName) {
     const deck = this.state.deck;
     const selectedCardsCount = sumTotalSelectedCardsCount(deck);
-    if (selectedCardsCount < MAX_CARD_IN_A_DECK) {
+    if (selectedCardsCount < MAX_CARD_IN_DECK) {
       const cardCount = deck[cardName] || 0;
       if (cardCount < MAX_DUPLICATE_CARD_COUNT) {
         deck[cardName] = cardCount + 1;
@@ -132,24 +156,26 @@ class CardContainer extends React.Component {
         console.log(cardName + " already have " + MAX_DUPLICATE_CARD_COUNT + " copies in deck");
       }
     } else {
-      console.log("Cannot select more than " + MAX_CARD_IN_A_DECK + " cards");
+      console.log("Cannot select more than " + MAX_CARD_IN_DECK + " cards");
     }
   }
 
   render() {
     if (Object.keys(this.state.selectedHeroJson).length !== 0) {
       var that = this;
-      var boundRemoveCardFromSelected = this.removeCardFromSelected.bind(this); 
+      var boundRemoveCardFromSelected = this.removeCardFromSelected.bind(this);
       const content = Object.keys(this.state.cards).map(function(cardName, index) {
+        const cardJson = that.state.cards[cardName];
+        const cardStatus = that.getCardStatus(cardJson);
         return (
-          <li onClick={() => that.listenOnSelectCard(cardName)} key={index}>
-            {that.state.cards[cardName].displayName}
+          <li onClick={() => that.listenOnSelectCard(cardName)} key={index} className={cardJson.type}>
+            {cardJson.displayName} {cardStatus}
           </li>
         );
       });
       return (
         <div className={CARDS}>
-          <ul className={CARD_ENTRY}>{content}</ul>
+          <ul className='cardList'>{content}</ul>
           <Deck deck={this.state.deck} removeCardFromSelected={boundRemoveCardFromSelected} cards={this.state.cards} />
         </div>
       );
