@@ -94,7 +94,7 @@ class CardContainer extends React.Component {
       url: this.props.url,
       dataType: 'json',
       type: 'POST',
-      data: JSON.stringify({class_type: this.state.selectedHeroJson.class_type}),
+      data: JSON.stringify({classType: this.state.selectedHeroJson.class_type}),
       cache: true,
       success: function(data) {
         this.setState({cards: data});

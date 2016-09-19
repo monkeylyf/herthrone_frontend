@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 
 import Dashboard from '../dashboard/dashboard.jsx';
 import Battlefield from './battlefield.jsx';
-import { EMPTY_HASH, DECK, SELECTED_HERO } from '../literals/local_storage.jsx';
+import { EMPTY_HASH, DECK, GAME_ID, SELECTED_HERO } from '../literals/local_storage.jsx';
 import { MAX_CARD_IN_DECK } from '../literals/constant.jsx';
 import { sumTotalSelectedCardsCount } from '../card/card.jsx';
 import { COMPLETE_DECK_MESSAGE, SELECT_HERO_MESSAGE } from '../literals/message.jsx';
@@ -13,7 +13,7 @@ class MatchStatusBar extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      gameId: null
+      gameId: localStorage.getItem(GAME_ID) || null
     };
 
     this.startGame = this.startGame.bind(this);
@@ -32,8 +32,10 @@ class MatchStatusBar extends React.Component {
       data: JSON.stringify(data),
       cache: true,
       success: function(data) {
-        console.log("test " + data);
-        this.setState({gameId: data.id});
+        console.log(data);
+        this.setState({gameId: data.game_id}, function() {
+          localStorage.setItem(GAME_ID, data.game_id);
+        });
       }.bind(this),
       error: function(xhr, status, err) {
         console.error(this.props.url, status, err.toString());
@@ -49,8 +51,10 @@ class MatchStatusBar extends React.Component {
       content = SELECT_HERO_MESSAGE;
     } else if (sumTotalSelectedCardsCount(this.props.deck) < MAX_CARD_IN_DECK) {
       content = COMPLETE_DECK_MESSAGE;
-    } else {
+    } else if (!this.state.gameId) {
       content = <button type="button" onClick={this.startGame}>Find a worthy foe</button>;
+    } else {
+      content = <Battlefield gameId={this.state.gameId} url="api/game/view"/>
     }
     return (
       <div>{content}</div>
@@ -73,7 +77,6 @@ export default class Match extends React.Component {
       <div>
         <Dashboard />
         <MatchStatusBar selectedHero={this.state.selectedHero} deck={this.state.deck} url='api/game/start'/>
-        <Battlefield />
       </div>
     );
   };
